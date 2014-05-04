@@ -12,13 +12,13 @@ function initializeCastApi() {
     var applicationId = chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID;
     var sessionRequest = new chrome.cast.SessionRequest(applicationId);
 
-    console.log("get session for " + applicationId);
+    console.log("Get session for " + applicationId);
 
     var apiConfig = new chrome.cast.ApiConfig(sessionRequest,
       sessionListener,
       receiverListener);
 
-    console.log("get apiConfig " + apiConfig);
+    console.log("Get apiConfig " + apiConfig);
 
     chrome.cast.initialize(apiConfig, onInitSuccess, onError);
 };
@@ -46,15 +46,15 @@ var sessionListener = function(e) {
 
 var receiverListener = function(receivers) {
     if (receivers === 'available') {
-        console.log("receiver found");
-        document.getElementById("info").innerText = "TEST";
+        console.log("Receiver found");
+        
     } else {
-        console.log("receiver list empty");
+        console.log("No Receiver found");
     }
 };
 
 var launchApp = function () {
-    console.log("launching app...");
+    console.log("Launching app...");
 
     chrome.cast.requestSession(onRequestSessionSuccess, onLaunchError);
     if (timer) {
@@ -63,7 +63,7 @@ var launchApp = function () {
 };
 
 var onRequestSessionSuccess = function (e) {
-    console.log("session success: " + e.sessionId);
+    console.log("Session success: " + e.sessionId);
 
     session = e;
     document.getElementById("casticon").src = 'images/cast_icon_active.png';
@@ -81,7 +81,6 @@ var onRequestSessionSuccess = function (e) {
 
 var sessionUpdateListener = function(isAlive) {
     var message = isAlive ? 'Session Updated' : 'Session Removed';
-    message += ': ' + session.sessionId;
 
     console.log(message);
 
@@ -98,7 +97,8 @@ var sessionUpdateListener = function(isAlive) {
     }
 };
 
-var updateCurrentTime = function() {
+var updateCurrentTime = function () {
+    console.log("updateCurrentTime");
     if (!session || !currentMedia) {
         return;
     }
@@ -116,7 +116,7 @@ var updateCurrentTime = function() {
 
 
 var onMediaDiscovered = function(how, media) {
-    console.log("new media session ID:" + media.mediaSessionId);
+    console.log("New media session ID:" + media.mediaSessionId);
 
     currentMedia = media;
     currentMedia.addUpdateListener(onMediaStatusUpdate);
@@ -128,14 +128,15 @@ var onMediaDiscovered = function(how, media) {
 };
 
 var onMediaStatusUpdate = function (isAlive) {
-    console.log("media status update..");
+    console.log("Media status update..");
 };
 
 var onLaunchError = function() {
-    console.log("launch error");
+    console.log("Launch error");
 };
 
-var stopApp = function() {
+var stopApp = function () {
+    console.log("Stopping App..");
     session.stop(onStopAppSuccess, onError);
     if (timer) {
         clearInterval(timer);
@@ -167,15 +168,35 @@ var playMedia = function () {
     }
 
     currentMedia.play(null, 
-        mediaCommandSuccessCallback.bind(this,"playing started for " + currentMedia.sessionId),
+        mediaCommandSuccessCallback.bind(this,"Playing started for " + currentMedia.sessionId),
          onError);
-        console.log("play started");
+        console.log("Play started");
         timer = setInterval(updateCurrentTime.bind(this), 1000);    
     
 };
 
+var stopMedia = function() {
+    console.log("Stopping media");
+    if (!currentMedia)
+        return;
+
+    currentMedia.stop(null,
+        mediaCommandSuccessCallback.bind(this, "stopped " + currentMedia.sessionId),
+        onError);
+
+    console.log("media stopped");
+
+    if (timer) {
+        clearInterval(timer);
+    }
+};
+
+var mediaCommandSuccessCallback = function(info) {
+    console.log(info);
+};
+
 
 var onMediaError = function(e) {
-    console.log("media error");
+    console.log("Media error");
     document.getElementById("casticon").src = 'images/cast_icon_warning.png';
 };
