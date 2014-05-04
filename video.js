@@ -2,7 +2,13 @@ var session = null;
 var timer = null;
 var currentMedia = null;
 var currentMediaURL = 'http://commondatastorage.googleapis.com/gtv-videos-bucket/ED_1280.mp4';
-
+var photo =  
+    {
+        //'url': 'http://www.videws.com/eureka/castv2/images/San_Francisco_Fog.jpg',
+        'url': 'http://www.bing.com/az/hprichbg/rb/GreenIguana_EN-US10129447385_1366x768.jpg',
+        'title':'San Francisco Fog',
+        'thumb':'images/San_Francisco_Fog.jpg'        
+    };
 
 if (!chrome.cast || !chrome.cast.isAvailable) {
     setTimeout(initializeCastApi, 1000);
@@ -199,4 +205,28 @@ var mediaCommandSuccessCallback = function(info) {
 var onMediaError = function(e) {
     console.log("Media error");
     document.getElementById("casticon").src = 'images/cast_icon_warning.png';
+};
+
+var showImage = function() {
+    var mediaInfo = new chrome.cast.media.MediaInfo(photo['url']);
+    console.log("loading..." + photo['url']);
+
+    mediaInfo.metadata = new chrome.cast.media.PhotoMediaMetadata();
+    mediaInfo.metadata.metadataType = chrome.cast.media.MetadataType.PHOTO;
+    mediaInfo.metadata.artist = 'Bing';
+    mediaInfo.metadata.location = 'Bing';
+    mediaInfo.metadata.longitude = 37.7833;
+    mediaInfo.metadata.latitude = 122.4167;
+    mediaInfo.metadata.width = 1728;
+    mediaInfo.metadata.height = 1152;
+    mediaInfo.metadata.creationDateTime = '1999';
+    mediaInfo.contentType = 'image/jpg';    
+
+    mediaInfo.metadata.title = photo['title'];
+    mediaInfo.metadata.images = [{ 'url': 'http://www.videws.com/eureka/castv2/' + photo['thumb'] }];
+
+    var request = new chrome.cast.media.LoadRequest(mediaInfo);
+    request.autoplay = true;
+    request.currentTime = 0;
+    session.loadMedia(request, onMediaDiscovered.bind(this, 'loadMedia'), onMediaError.bind(this));
 };
